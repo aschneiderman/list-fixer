@@ -36,19 +36,24 @@
             cursor: pointer;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-clear { background-color: #ff3b30; }
         .btn-copy { background-color: #5856d6; }
 
-        /* Fallback Input for iOS */
+        /* The Multi-line Fallback */
         #manual-paste {
             width: 100%;
+            height: 120px;
             padding: 12px;
-            border-radius: 8px;
-            border: 1px dashed #007aff;
+            border-radius: 10px;
+            border: 2px dashed #007aff;
             margin-bottom: 15px;
-            display: none; /* Only shows if auto-paste fails */
+            display: none; 
             box-sizing: border-box;
+            font-family: inherit;
+            font-size: 1rem;
+            background-color: #fff;
         }
 
         #sortable-list {
@@ -65,6 +70,7 @@
             display: flex;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            touch-action: none; /* Helps with mobile dragging */
         }
         .handle {
             margin-right: 15px;
@@ -72,10 +78,19 @@
             font-size: 1.2rem;
             user-select: none;
         }
+        .text-content {
+            flex: 1;
+            word-break: break-word;
+        }
         .bottom-copy {
             margin-top: 20px;
             width: 100%;
             display: none;
+        }
+        /* Visual cue for dragging */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #e1f5fe;
         }
     </style>
 </head>
@@ -89,7 +104,7 @@
         <button class="btn btn-copy" onclick="exportMarkdown(event)">Copy</button>
     </div>
 
-    <input type="text" id="manual-paste" placeholder="Safari blocked auto-paste. Paste here instead..." oninput="handleManualInput(this)">
+    <textarea id="manual-paste" placeholder="Safari blocked auto-paste. Tap here and select 'Paste' to import your list..."></textarea>
 
     <ul id="sortable-list"></ul>
 
@@ -100,31 +115,35 @@
         const bottomBtn = document.getElementById('bottom-copy-btn');
         const manualInput = document.getElementById('manual-paste');
 
+        // Watch the manual textarea for pastes
+        manualInput.addEventListener('input', () => {
+            if (manualInput.value.trim() !== '') {
+                generateList(manualInput.value);
+                manualInput.value = '';
+                manualInput.style.display = 'none';
+            }
+        });
+
         let sortable = new Sortable(listElement, {
             animation: 150,
             handle: '.list-item',
-            ghostClass: 'sortable-ghost'
+            ghostClass: 'sortable-ghost',
+            forceFallback: false // Uses native touch if possible
         });
 
         async function pasteFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
-                if (text) {
+                if (text && text.trim() !== "") {
                     generateList(text);
                     manualInput.style.display = 'none';
+                } else if (text === "") {
+                    alert("Clipboard is empty!");
                 }
             } catch (err) {
-                // If Safari blocks it, show the manual box
+                // If Safari blocks the read, show the multi-line textarea
                 manualInput.style.display = 'block';
                 manualInput.focus();
-            }
-        }
-
-        function handleManualInput(el) {
-            if (el.value.trim() !== '') {
-                generateList(el.value);
-                el.value = '';
-                el.style.display = 'none';
             }
         }
 
@@ -145,6 +164,7 @@
             listElement.innerHTML = '';
             bottomBtn.style.display = 'none';
             manualInput.style.display = 'none';
+            manualInput.value = '';
         }
 
         function exportMarkdown(event) {
