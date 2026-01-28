@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Markdown Reorder Sandbox</title>
+    <title>List Fixer</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body {
@@ -14,34 +14,28 @@
             max-width: 600px;
             margin: 0 auto;
         }
-        h2 { font-size: 1.1rem; color: #555; margin-bottom: 10px; }
-        #input-area {
-            width: 100%;
-            height: 120px;
-            margin-bottom: 15px;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: monospace;
-        }
-        /* Button Row Styling */
+        h1 { font-size: 1.5rem; color: #222; text-align: center; margin-bottom: 20px; }
+        
         .button-row {
             display: flex;
             gap: 8px;
             margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
         }
         .btn {
-            flex: 1; /* Makes buttons equal width */
+            flex: 1;
             background-color: #007aff;
             color: white;
             border: none;
-            padding: 12px 5px;
-            border-radius: 8px;
+            padding: 14px 5px;
+            border-radius: 10px;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .btn-clear { background-color: #ff3b30; }
         .btn-copy { background-color: #5856d6; }
@@ -53,9 +47,9 @@
         }
         .list-item {
             background: #fff;
-            margin-bottom: 8px;
-            padding: 14px;
-            border-radius: 8px;
+            margin-bottom: 10px;
+            padding: 16px;
+            border-radius: 10px;
             border: 1px solid #ddd;
             display: flex;
             align-items: center;
@@ -65,31 +59,31 @@
             margin-right: 15px;
             color: #bbb;
             font-size: 1.2rem;
+            user-select: none;
         }
         .bottom-copy {
             margin-top: 20px;
             width: 100%;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <h2>Paste Markdown Bullets</h2>
-    <textarea id="input-area" placeholder="- Item 1&#10;- Item 2"></textarea>
+    <h1>List Fixer</h1>
     
     <div class="button-row">
-        <button class="btn" onclick="generateList()">Make List</button>
+        <button class="btn" onclick="pasteFromClipboard()">Paste Markdown</button>
         <button class="btn btn-clear" onclick="clearAll()">Clear</button>
         <button class="btn btn-copy" onclick="exportMarkdown()">Copy</button>
     </div>
 
     <ul id="sortable-list"></ul>
 
-    <button id="bottom-copy-btn" class="btn btn-copy bottom-copy" style="display:none;" onclick="exportMarkdown()">Copy Markdown</button>
+    <button id="bottom-copy-btn" class="btn btn-copy bottom-copy" onclick="exportMarkdown()">Copy Markdown</button>
 
     <script>
         const listElement = document.getElementById('sortable-list');
-        const inputArea = document.getElementById('input-area');
         const bottomBtn = document.getElementById('bottom-copy-btn');
 
         let sortable = new Sortable(listElement, {
@@ -98,11 +92,23 @@
             ghostClass: 'sortable-ghost'
         });
 
-        function generateList() {
-            const lines = inputArea.value.split('\n').filter(line => line.trim() !== '');
-            if (lines.length === 0) return;
-            
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) {
+                    alert("Clipboard is empty!");
+                    return;
+                }
+                generateList(text);
+            } catch (err) {
+                alert("Please allow clipboard access to use this feature.");
+            }
+        }
+
+        function generateList(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
             listElement.innerHTML = '';
+            
             lines.forEach(line => {
                 const li = document.createElement('li');
                 li.className = 'list-item';
@@ -113,12 +119,11 @@
         }
 
         function clearAll() {
-            inputArea.value = '';
             listElement.innerHTML = '';
             bottomBtn.style.display = 'none';
         }
 
-        function exportMarkdown() {
+        function exportMarkdown(event) {
             const items = document.querySelectorAll('.text-content');
             let output = '';
             items.forEach(item => {
@@ -126,9 +131,10 @@
             });
             
             navigator.clipboard.writeText(output).then(() => {
-                const originalText = event.target.innerText;
-                event.target.innerText = 'Copied!';
-                setTimeout(() => { event.target.innerText = originalText; }, 1500);
+                const target = event.currentTarget;
+                const originalText = target.innerText;
+                target.innerText = 'Copied!';
+                setTimeout(() => { target.innerText = originalText; }, 1500);
             });
         }
     </script>
