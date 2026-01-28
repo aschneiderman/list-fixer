@@ -11,17 +11,41 @@
             padding: 20px;
             background-color: #f4f4f9;
             color: #333;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        h2 { font-size: 1.2rem; color: #555; }
+        h2 { font-size: 1.1rem; color: #555; margin-bottom: 10px; }
         #input-area {
             width: 100%;
             height: 120px;
             margin-bottom: 15px;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
+            font-family: monospace;
         }
+        /* Button Row Styling */
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            flex: 1; /* Makes buttons equal width */
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 5px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-clear { background-color: #ff3b30; }
+        .btn-copy { background-color: #5856d6; }
+
         #sortable-list {
             list-style: none;
             padding: 0;
@@ -30,66 +54,68 @@
         .list-item {
             background: #fff;
             margin-bottom: 8px;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             border: 1px solid #ddd;
-            cursor: grab;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .list-item:active { cursor: grabbing; }
         .handle {
             margin-right: 15px;
-            color: #ccc;
-            font-weight: bold;
+            color: #bbb;
+            font-size: 1.2rem;
         }
-        .btn {
-            background-color: #007aff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-right: 10px;
+        .bottom-copy {
+            margin-top: 20px;
+            width: 100%;
         }
-        .btn-secondary { background-color: #5856d6; }
     </style>
 </head>
 <body>
 
-    <h2>1. Paste Markdown Bullets</h2>
-    <textarea id="input-area" placeholder="Paste your - list items here..."></textarea>
+    <h2>Paste Markdown Bullets</h2>
+    <textarea id="input-area" placeholder="- Item 1&#10;- Item 2"></textarea>
     
-    <button class="btn" onclick="generateList()">Generate Draggable List</button>
+    <div class="button-row">
+        <button class="btn" onclick="generateList()">Make List</button>
+        <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+        <button class="btn btn-copy" onclick="exportMarkdown()">Copy</button>
+    </div>
 
-    <ul id="sortable-list">
-        </ul>
+    <ul id="sortable-list"></ul>
 
-    <button class="btn btn-secondary" onclick="exportMarkdown()">Copy Reordered Markdown</button>
+    <button id="bottom-copy-btn" class="btn btn-copy bottom-copy" style="display:none;" onclick="exportMarkdown()">Copy Markdown</button>
 
     <script>
         const listElement = document.getElementById('sortable-list');
         const inputArea = document.getElementById('input-area');
+        const bottomBtn = document.getElementById('bottom-copy-btn');
 
-        // Initialize Sortable
         let sortable = new Sortable(listElement, {
             animation: 150,
-            ghostClass: 'blue-background-class',
-            handle: '.list-item' // The whole item is the handle for easy touch reordering
+            handle: '.list-item',
+            ghostClass: 'sortable-ghost'
         });
 
         function generateList() {
             const lines = inputArea.value.split('\n').filter(line => line.trim() !== '');
-            listElement.innerHTML = '';
+            if (lines.length === 0) return;
             
+            listElement.innerHTML = '';
             lines.forEach(line => {
                 const li = document.createElement('li');
                 li.className = 'list-item';
                 li.innerHTML = `<span class="handle">☰</span> <span class="text-content">${line}</span>`;
                 listElement.appendChild(li);
             });
+            bottomBtn.style.display = 'block';
+        }
+
+        function clearAll() {
+            inputArea.value = '';
+            listElement.innerHTML = '';
+            bottomBtn.style.display = 'none';
         }
 
         function exportMarkdown() {
@@ -100,7 +126,9 @@
             });
             
             navigator.clipboard.writeText(output).then(() => {
-                alert('Markdown copied to clipboard!');
+                const originalText = event.target.innerText;
+                event.target.innerText = 'Copied!';
+                setTimeout(() => { event.target.innerText = originalText; }, 1500);
             });
         }
     </script>
