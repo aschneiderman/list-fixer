@@ -40,6 +40,17 @@
         .btn-clear { background-color: #ff3b30; }
         .btn-copy { background-color: #5856d6; }
 
+        /* Fallback Input for iOS */
+        #manual-paste {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed #007aff;
+            margin-bottom: 15px;
+            display: none; /* Only shows if auto-paste fails */
+            box-sizing: border-box;
+        }
+
         #sortable-list {
             list-style: none;
             padding: 0;
@@ -75,16 +86,19 @@
     <div class="button-row">
         <button class="btn" onclick="pasteFromClipboard()">Paste Markdown</button>
         <button class="btn btn-clear" onclick="clearAll()">Clear</button>
-        <button class="btn btn-copy" onclick="exportMarkdown()">Copy</button>
+        <button class="btn btn-copy" onclick="exportMarkdown(event)">Copy</button>
     </div>
+
+    <input type="text" id="manual-paste" placeholder="Safari blocked auto-paste. Paste here instead..." oninput="handleManualInput(this)">
 
     <ul id="sortable-list"></ul>
 
-    <button id="bottom-copy-btn" class="btn btn-copy bottom-copy" onclick="exportMarkdown()">Copy Markdown</button>
+    <button id="bottom-copy-btn" class="btn btn-copy bottom-copy" onclick="exportMarkdown(event)">Copy Markdown</button>
 
     <script>
         const listElement = document.getElementById('sortable-list');
         const bottomBtn = document.getElementById('bottom-copy-btn');
+        const manualInput = document.getElementById('manual-paste');
 
         let sortable = new Sortable(listElement, {
             animation: 150,
@@ -95,13 +109,22 @@
         async function pasteFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
-                if (!text) {
-                    alert("Clipboard is empty!");
-                    return;
+                if (text) {
+                    generateList(text);
+                    manualInput.style.display = 'none';
                 }
-                generateList(text);
             } catch (err) {
-                alert("Please allow clipboard access to use this feature.");
+                // If Safari blocks it, show the manual box
+                manualInput.style.display = 'block';
+                manualInput.focus();
+            }
+        }
+
+        function handleManualInput(el) {
+            if (el.value.trim() !== '') {
+                generateList(el.value);
+                el.value = '';
+                el.style.display = 'none';
             }
         }
 
@@ -121,6 +144,7 @@
         function clearAll() {
             listElement.innerHTML = '';
             bottomBtn.style.display = 'none';
+            manualInput.style.display = 'none';
         }
 
         function exportMarkdown(event) {
@@ -132,7 +156,7 @@
             
             navigator.clipboard.writeText(output).then(() => {
                 const target = event.currentTarget;
-                const originalText = target.innerText;
+                const originalText = (target.id === 'bottom-copy-btn') ? 'Copy Markdown' : 'Copy';
                 target.innerText = 'Copied!';
                 setTimeout(() => { target.innerText = originalText; }, 1500);
             });
