@@ -14,7 +14,9 @@
             max-width: 600px;
             margin: 0 auto;
         }
-        h1 { font-size: 1.5rem; color: #222; text-align: center; margin-bottom: 20px; }
+        .header-container { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 1.5rem; color: #222; margin: 0; }
+        .version { font-size: 0.7rem; color: #999; margin-top: 4px; }
         
         .button-row {
             display: flex;
@@ -41,7 +43,6 @@
         .btn-clear { background-color: #ff3b30; }
         .btn-copy { background-color: #5856d6; }
 
-        /* The Multi-line Fallback */
         #manual-paste {
             width: 100%;
             height: 120px;
@@ -70,7 +71,7 @@
             display: flex;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            touch-action: none; /* Helps with mobile dragging */
+            touch-action: none;
         }
         .handle {
             margin-right: 15px;
@@ -78,25 +79,17 @@
             font-size: 1.2rem;
             user-select: none;
         }
-        .text-content {
-            flex: 1;
-            word-break: break-word;
-        }
-        .bottom-copy {
-            margin-top: 20px;
-            width: 100%;
-            display: none;
-        }
-        /* Visual cue for dragging */
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #e1f5fe;
-        }
+        .text-content { flex: 1; word-break: break-word; }
+        .bottom-copy { margin-top: 20px; width: 100%; display: none; }
+        .sortable-ghost { opacity: 0.4; background-color: #e1f5fe; }
     </style>
 </head>
 <body>
 
-    <h1>List Fixer</h1>
+    <div class="header-container">
+        <h1>List Fixer</h1>
+        <div class="version">v1.0.1</div>
+    </div>
     
     <div class="button-row">
         <button class="btn" onclick="pasteFromClipboard()">Paste Markdown</button>
@@ -115,7 +108,6 @@
         const bottomBtn = document.getElementById('bottom-copy-btn');
         const manualInput = document.getElementById('manual-paste');
 
-        // Watch the manual textarea for pastes
         manualInput.addEventListener('input', () => {
             if (manualInput.value.trim() !== '') {
                 generateList(manualInput.value);
@@ -127,8 +119,7 @@
         let sortable = new Sortable(listElement, {
             animation: 150,
             handle: '.list-item',
-            ghostClass: 'sortable-ghost',
-            forceFallback: false // Uses native touch if possible
+            ghostClass: 'sortable-ghost'
         });
 
         async function pasteFromClipboard() {
@@ -137,11 +128,8 @@
                 if (text && text.trim() !== "") {
                     generateList(text);
                     manualInput.style.display = 'none';
-                } else if (text === "") {
-                    alert("Clipboard is empty!");
                 }
             } catch (err) {
-                // If Safari blocks the read, show the multi-line textarea
                 manualInput.style.display = 'block';
                 manualInput.focus();
             }
