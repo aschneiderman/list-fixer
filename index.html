@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Markdown Reorder Sandbox</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h2 { font-size: 1.2rem; color: #555; }
+        #input-area {
+            width: 100%;
+            height: 120px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        #sortable-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .list-item {
+            background: #fff;
+            margin-bottom: 8px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+        }
+        .list-item:active { cursor: grabbing; }
+        .handle {
+            margin-right: 15px;
+            color: #ccc;
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-secondary { background-color: #5856d6; }
+    </style>
+</head>
+<body>
+
+    <h2>1. Paste Markdown Bullets</h2>
+    <textarea id="input-area" placeholder="Paste your - list items here..."></textarea>
+    
+    <button class="btn" onclick="generateList()">Generate Draggable List</button>
+
+    <ul id="sortable-list">
+        </ul>
+
+    <button class="btn btn-secondary" onclick="exportMarkdown()">Copy Reordered Markdown</button>
+
+    <script>
+        const listElement = document.getElementById('sortable-list');
+        const inputArea = document.getElementById('input-area');
+
+        // Initialize Sortable
+        let sortable = new Sortable(listElement, {
+            animation: 150,
+            ghostClass: 'blue-background-class',
+            handle: '.list-item' // The whole item is the handle for easy touch reordering
+        });
+
+        function generateList() {
+            const lines = inputArea.value.split('\n').filter(line => line.trim() !== '');
+            listElement.innerHTML = '';
+            
+            lines.forEach(line => {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.innerHTML = `<span class="handle">☰</span> <span class="text-content">${line}</span>`;
+                listElement.appendChild(li);
+            });
+        }
+
+        function exportMarkdown() {
+            const items = document.querySelectorAll('.text-content');
+            let output = '';
+            items.forEach(item => {
+                output += item.innerText + '\n';
+            });
+            
+            navigator.clipboard.writeText(output).then(() => {
+                alert('Markdown copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
