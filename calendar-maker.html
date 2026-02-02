@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rose Board</title>
+    <style>
+        @page {
+            size: landscape;
+            margin: 0.5in;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            margin: 0.4in;
+            color: #000;
+            background-color: #fff;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: 1px solid #000;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 400;
+            margin: 0;
+        }
+
+        .board-title {
+            font-size: 28px;
+            font-weight: 400;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-top: 1px solid #ccc;
+            border-left: 1px solid #ccc;
+            width: 100%;
+        }
+
+        .day-cell {
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            /* Height increased from 1.4/1 to 1/1.1 to stretch vertically */
+            aspect-ratio: 1 / 1.1; 
+            position: relative;
+        }
+
+        .date-number {
+            font-size: 10px;
+            position: absolute;
+            top: 6px;
+            left: 8px;
+        }
+
+        @media print {
+            .controls {
+                display: none;
+            }
+            body {
+                margin: 0.4in;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button id="prevBtn" onclick="changeMonth(-1)">Previous Month</button>
+        <button id="nextBtn" onclick="changeMonth(1)">Next Month</button>
+        <button id="printBtn" onclick="window.print()">Print Board</button>
+    </div>
+
+    <header>
+        <h1 id="monthDisplay">Month Year</h1>
+        <div class="board-title">Rose Board</div>
+    </header>
+
+    <div class="calendar-grid" id="calendarGrid"></div>
+
+    <script>
+        let currentViewDate = new Date();
+
+        function render() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const y = currentViewDate.getFullYear();
+            const m = currentViewDate.getMonth();
+
+            const monthName = currentViewDate.toLocaleString('default', { month: 'long' });
+            document.getElementById('monthDisplay').innerText = `${monthName} ${y}`;
+
+            const firstDay = new Date(y, m, 1).getDay();
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const b = document.createElement('div');
+                b.className = 'day-cell';
+                grid.appendChild(b);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                
+                const checkDate = new Date(y, m, day);
+                if (checkDate.getDay() === 0) {
+                    const span = document.createElement('span');
+                    span.className = 'date-number';
+                    span.innerText = day;
+                    cell.appendChild(span);
+                }
+                
+                grid.appendChild(cell);
+            }
+        }
+
+        function changeMonth(step) {
+            currentViewDate.setMonth(currentViewDate.getMonth() + step);
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
