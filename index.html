@@ -1,5 +1,13 @@
 <!DOCTYPE html>
-
+<!--
+  TRANSFER NOTE FOR CLAUDE: When updating this file, do NOT have the user copy
+  from a Claude chat code block — the Copy button injects stray ``` fences
+  where indentation changes, corrupting the file. Instead, build a transfer
+  page (an HTML page with the full source embedded in a <textarea> plus a
+  "Copy all" button) and present it via present_files. The user copies from
+  the textarea on that page and pastes into GitHub. See chat history around
+  v1.3.1 for the working pattern.
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -21,380 +29,374 @@
         .version { font-size: 0.7rem; color: #999; margin-top: 4px; }
         .hint { font-size: 0.75rem; color: #888; margin-top: 6px; font-style: italic; }
 
-```
-    .button-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-        position: sticky;
-        top: 10px;
-        z-index: 100;
-    }
-    .btn {
-        flex: 1;
-        background-color: #007aff;
-        color: white;
-        border: none;
-        padding: 14px 5px;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        -webkit-tap-highlight-color: transparent;
-    }
-    .btn-clear { background-color: #ff3b30; }
-    .btn-copy { background-color: #5856d6; }
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        .btn {
+            flex: 1;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 14px 5px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-clear { background-color: #ff3b30; }
+        .btn-copy { background-color: #5856d6; }
 
-    #manual-paste {
-        width: 100%;
-        height: 120px;
-        padding: 12px;
-        border-radius: 10px;
-        border: 2px dashed #007aff;
-        margin-bottom: 15px;
-        display: none;
-        font-family: inherit;
-        font-size: 1rem;
-        background-color: #fff;
-    }
+        #manual-paste {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px dashed #007aff;
+            margin-bottom: 15px;
+            display: none;
+            font-family: inherit;
+            font-size: 1rem;
+            background-color: #fff;
+        }
 
-    #sections-container {
-        margin: 20px 0;
-    }
+        #sections-container {
+            margin: 20px 0;
+        }
 
-    /* Section blocks — these are the units that move when you drag a section header */
-    .section {
-        background: transparent;
-        margin-bottom: 32px;
-        border-radius: 12px;
-    }
+        /* Section blocks — these are the units that move when you drag a section header */
+        .section {
+            background: transparent;
+            margin-bottom: 32px;
+            border-radius: 12px;
+        }
 
-    .section-header {
-        display: flex;
-        align-items: center;
-        background: #fff;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        margin-bottom: 10px;
-        font-family: Georgia, "Times New Roman", serif;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #222;
-        touch-action: none;
-        cursor: grab;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .section-header .handle {
-        margin-right: 12px;
-        color: #bbb;
-        font-size: 1.2rem;
-        user-select: none;
-    }
-    .section-header .header-text {
-        flex: 1;
-        word-break: break-word;
-    }
-    .section-header .delete-btn {
-        color: #ff3b30;
-    }
+        .section-header {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #222;
+            touch-action: none;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .section-header .handle {
+            margin-right: 12px;
+            color: #bbb;
+            font-size: 1.2rem;
+            user-select: none;
+        }
+        .section-header .header-text {
+            flex: 1;
+            word-break: break-word;
+        }
+        .section-header .delete-btn {
+            color: #ff3b30;
+        }
 
-    /* Lists of items inside a section */
-    .item-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        min-height: 12px; /* keeps empty sections drop-targetable */
-    }
+        /* Lists of items inside a section */
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            min-height: 12px; /* keeps empty sections drop-targetable */
+        }
 
-    .list-item {
-        background: #fff;
-        margin-bottom: 8px;
-        padding: 14px;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        touch-action: none;
-    }
-    .handle {
-        margin-right: 12px;
-        color: #bbb;
-        font-size: 1.2rem;
-        user-select: none;
-        flex-shrink: 0;
-    }
-    .text-content {
-        flex: 1;
-        word-break: break-word;
-        min-width: 0;
-    }
-    .delete-btn {
-        margin-left: 10px;
-        background: none;
-        border: none;
-        color: #ff3b30;
-        font-size: 1.3rem;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 4px 10px;
-        border-radius: 6px;
-        -webkit-tap-highlight-color: transparent;
-        flex-shrink: 0;
-        line-height: 1;
-    }
-    .delete-btn:active { background: #ffe5e3; }
+        .list-item {
+            background: #fff;
+            margin-bottom: 8px;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            touch-action: none;
+        }
+        .handle {
+            margin-right: 12px;
+            color: #bbb;
+            font-size: 1.2rem;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .text-content {
+            flex: 1;
+            word-break: break-word;
+            min-width: 0;
+        }
+        .delete-btn {
+            margin-left: 10px;
+            background: none;
+            border: none;
+            color: #ff3b30;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .delete-btn:active { background: #ffe5e3; }
 
-    .md-link {
-        color: #007aff;
-    }
-    .section-header .md-link {
-        color: #0a66c2;
-    }
+        .md-link {
+            color: #007aff;
+        }
+        .section-header .md-link {
+            color: #0a66c2;
+        }
 
-    .bottom-copy { margin-top: 20px; width: 100%; display: none; }
-    .sortable-ghost { opacity: 0.4; background-color: #e1f5fe; }
-    .sortable-drag { opacity: 0.9; }
-</style>
-```
-
+        .bottom-copy { margin-top: 20px; width: 100%; display: none; }
+        .sortable-ghost { opacity: 0.4; background-color: #e1f5fe; }
+        .sortable-drag { opacity: 0.9; }
+    </style>
 </head>
 <body>
 
-```
-<div class="header-container">
-    <h1>List Fixer</h1>
-    <div class="version">v1.3.1</div>
-    <div class="hint">Drag items within or between sections. Drag a section header to move the whole section.</div>
-</div>
+    <div class="header-container">
+        <h1>List Fixer</h1>
+        <div class="version">v1.4</div>
+        <div class="hint">Drag items within or between sections. Drag a section header to move the whole section.</div>
+    </div>
 
-<div class="button-row">
-    <button class="btn" onclick="pasteFromClipboard()">Paste Markdown</button>
-    <button class="btn btn-clear" onclick="clearAll()">Clear</button>
-    <button class="btn btn-copy" onclick="exportMarkdown(event)">Copy</button>
-</div>
+    <div class="button-row">
+        <button class="btn" onclick="pasteFromClipboard()">Paste Markdown</button>
+        <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+        <button class="btn btn-copy" onclick="exportMarkdown(event)">Copy</button>
+    </div>
 
-<textarea id="manual-paste" placeholder="Safari blocked auto-paste. Tap here and select 'Paste' to import your list..."></textarea>
+    <textarea id="manual-paste" placeholder="Safari blocked auto-paste. Tap here and select 'Paste' to import your list..."></textarea>
 
-<div id="sections-container"></div>
+    <div id="sections-container"></div>
 
-<button id="bottom-copy-btn" class="btn btn-copy bottom-copy" onclick="exportMarkdown(event)">Copy Markdown</button>
+    <button id="bottom-copy-btn" class="btn btn-copy bottom-copy" onclick="exportMarkdown(event)">Copy Markdown</button>
 
-<script>
-    // ----- Markdown link rendering (display only — raw text is preserved on data-raw) -----
-    function escapeHtml(str) {
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    // Convert [[Page]], [[Page|Alias]], and [label](url) into styled link spans.
-    // Also strips the leading list marker (-, *, +) for visual display only.
-    // Input is RAW text; output is HTML-safe (input is escaped before substitution).
-    function renderMarkdownLinks(rawText) {
-        // Strip leading bullet marker for display (raw text on data-raw is unaffected)
-        const displayText = rawText.replace(/^\s*[-*+]\s+/, '');
-        let html = escapeHtml(displayText);
-
-        // Wiki-links: [[Page|Alias]] or [[Page]]. After escaping, brackets are literal.
-        html = html.replace(/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, (match, page, alias) => {
-            const display = alias ? alias : page;
-            return `<span class="md-link">${display}</span>`;
-        });
-
-        // Standard markdown links: [label](url). Same logic.
-        html = html.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, (match, label) => {
-            return `<span class="md-link">${label}</span>`;
-        });
-
-        return html;
-    }
-
-    const sectionsContainer = document.getElementById('sections-container');
-    const bottomBtn = document.getElementById('bottom-copy-btn');
-    const manualInput = document.getElementById('manual-paste');
-
-    // Track all SortableJS instances on item-lists so they share a group (cross-section drag)
-    const itemSortables = [];
-    let sectionsSortable = null;
-
-    manualInput.addEventListener('input', () => {
-        if (manualInput.value.trim() !== '') {
-            generateList(manualInput.value);
-            manualInput.value = '';
-            manualInput.style.display = 'none';
+    <script>
+        // ----- Markdown link rendering (display only — raw text is preserved on data-raw) -----
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
-    });
 
-    async function pasteFromClipboard() {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text && text.trim() !== "") {
-                generateList(text);
+        // Convert [[Page]], [[Page|Alias]], and [label](url) into styled link spans.
+        // Also strips the leading list marker (-, *, +) for visual display only.
+        // Input is RAW text; output is HTML-safe (input is escaped before substitution).
+        function renderMarkdownLinks(rawText) {
+            // Strip leading bullet marker for display (raw text on data-raw is unaffected)
+            const displayText = rawText.replace(/^\s*[-*+]\s+/, '');
+            let html = escapeHtml(displayText);
+
+            // Wiki-links: [[Page|Alias]] or [[Page]]. After escaping, brackets are literal.
+            html = html.replace(/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, (match, page, alias) => {
+                const display = alias ? alias : page;
+                return `<span class="md-link">${display}</span>`;
+            });
+
+            // Standard markdown links: [label](url). Same logic.
+            html = html.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, (match, label) => {
+                return `<span class="md-link">${label}</span>`;
+            });
+
+            return html;
+        }
+
+        const sectionsContainer = document.getElementById('sections-container');
+        const bottomBtn = document.getElementById('bottom-copy-btn');
+        const manualInput = document.getElementById('manual-paste');
+
+        // Track all SortableJS instances on item-lists so they share a group (cross-section drag)
+        const itemSortables = [];
+        let sectionsSortable = null;
+
+        manualInput.addEventListener('input', () => {
+            if (manualInput.value.trim() !== '') {
+                generateList(manualInput.value);
+                manualInput.value = '';
                 manualInput.style.display = 'none';
             }
-        } catch (err) {
-            manualInput.style.display = 'block';
-            manualInput.focus();
-        }
-    }
+        });
 
-    // A "list item" line starts with optional whitespace, then a bullet marker (-, *, or +).
-    // Anything else is treated as a section header (including markdown headers like "# Foo").
-    function isListLine(line) {
-        return /^\s*[-*+]\s+/.test(line);
-    }
-
-    function generateList(text) {
-        // Reset
-        sectionsContainer.innerHTML = '';
-        itemSortables.length = 0;
-        if (sectionsSortable) { sectionsSortable.destroy(); sectionsSortable = null; }
-
-        const lines = text.split('\n').filter(line => line.trim() !== '');
-
-        // Group lines into sections. A section = (optional header) + (zero or more item lines).
-        // If the file starts with item lines (no header first), we create an unnamed leading section.
-        const sections = [];
-        let current = null;
-
-        for (const line of lines) {
-            if (isListLine(line)) {
-                if (!current) {
-                    current = { header: null, items: [] };
-                    sections.push(current);
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim() !== "") {
+                    generateList(text);
+                    manualInput.style.display = 'none';
                 }
-                current.items.push(line);
-            } else {
-                // New section starts
-                current = { header: line, items: [] };
-                sections.push(current);
+            } catch (err) {
+                manualInput.style.display = 'block';
+                manualInput.focus();
             }
         }
 
-        // Build DOM
-        sections.forEach(sec => sectionsContainer.appendChild(buildSectionElement(sec)));
+        // A "list item" line starts with optional whitespace, then a bullet marker (-, *, or +).
+        // Anything else is treated as a section header (including markdown headers like "# Foo").
+        function isListLine(line) {
+            return /^\s*[-*+]\s+/.test(line);
+        }
 
-        // Wire up SortableJS — sections sortable on the outer container
-        sectionsSortable = new Sortable(sectionsContainer, {
-            animation: 150,
-            handle: '.section-header',
-            ghostClass: 'sortable-ghost',
-            draggable: '.section'
-        });
+        function generateList(text) {
+            // Reset
+            sectionsContainer.innerHTML = '';
+            itemSortables.length = 0;
+            if (sectionsSortable) { sectionsSortable.destroy(); sectionsSortable = null; }
 
-        // And per-section sortables that share a group so items can move between sections
-        document.querySelectorAll('.item-list').forEach(ul => {
-            const s = new Sortable(ul, {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+
+            // Group lines into sections. A section = (optional header) + (zero or more item lines).
+            // If the file starts with item lines (no header first), we create an unnamed leading section.
+            const sections = [];
+            let current = null;
+
+            for (const line of lines) {
+                if (isListLine(line)) {
+                    if (!current) {
+                        current = { header: null, items: [] };
+                        sections.push(current);
+                    }
+                    current.items.push(line);
+                } else {
+                    // New section starts
+                    current = { header: line, items: [] };
+                    sections.push(current);
+                }
+            }
+
+            // Build DOM
+            sections.forEach(sec => sectionsContainer.appendChild(buildSectionElement(sec)));
+
+            // Wire up SortableJS — sections sortable on the outer container
+            sectionsSortable = new Sortable(sectionsContainer, {
                 animation: 150,
-                group: 'items',
-                handle: '.list-item',
+                handle: '.section-header',
                 ghostClass: 'sortable-ghost',
-                draggable: '.list-item',
-                filter: '.delete-btn',
-                preventOnFilter: false
+                draggable: '.section'
             });
-            itemSortables.push(s);
-        });
 
-        bottomBtn.style.display = sections.length ? 'block' : 'none';
-    }
+            // And per-section sortables that share a group so items can move between sections
+            document.querySelectorAll('.item-list').forEach(ul => {
+                const s = new Sortable(ul, {
+                    animation: 150,
+                    group: 'items',
+                    handle: '.list-item',
+                    ghostClass: 'sortable-ghost',
+                    draggable: '.list-item',
+                    filter: '.delete-btn',
+                    preventOnFilter: false
+                });
+                itemSortables.push(s);
+            });
 
-    function buildSectionElement(section) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'section';
+            bottomBtn.style.display = sections.length ? 'block' : 'none';
+        }
 
-        if (section.header !== null) {
-            const headerEl = document.createElement('div');
-            headerEl.className = 'section-header';
-            headerEl.innerHTML = `
+        function buildSectionElement(section) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'section';
+
+            if (section.header !== null) {
+                const headerEl = document.createElement('div');
+                headerEl.className = 'section-header';
+                headerEl.innerHTML = `
+                    <span class="handle">☰</span>
+                    <span class="header-text"></span>
+                    <button class="delete-btn" aria-label="Delete section" onclick="deleteSection(this)">×</button>
+                `;
+                const headerText = headerEl.querySelector('.header-text');
+                headerText.dataset.raw = section.header;
+                headerText.innerHTML = renderMarkdownLinks(section.header);
+                wrapper.appendChild(headerEl);
+            }
+
+            const ul = document.createElement('ul');
+            ul.className = 'item-list';
+            section.items.forEach(itemText => {
+                ul.appendChild(buildItemElement(itemText));
+            });
+            wrapper.appendChild(ul);
+
+            return wrapper;
+        }
+
+        function buildItemElement(text) {
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            li.innerHTML = `
                 <span class="handle">☰</span>
-                <span class="header-text"></span>
-                <button class="delete-btn" aria-label="Delete section" onclick="deleteSection(this)">×</button>
+                <span class="text-content"></span>
+                <button class="delete-btn" aria-label="Delete item" onclick="deleteItem(this)">×</button>
             `;
-            const headerText = headerEl.querySelector('.header-text');
-            headerText.dataset.raw = section.header;
-            headerText.innerHTML = renderMarkdownLinks(section.header);
-            wrapper.appendChild(headerEl);
+            const textEl = li.querySelector('.text-content');
+            textEl.dataset.raw = text;
+            textEl.innerHTML = renderMarkdownLinks(text);
+            return li;
         }
 
-        const ul = document.createElement('ul');
-        ul.className = 'item-list';
-        section.items.forEach(itemText => {
-            ul.appendChild(buildItemElement(itemText));
-        });
-        wrapper.appendChild(ul);
+        function deleteItem(btn) {
+            const li = btn.closest('.list-item');
+            if (li) li.remove();
+        }
 
-        return wrapper;
-    }
+        function deleteSection(btn) {
+            // Deletes the section header AND all items in that section.
+            const section = btn.closest('.section');
+            if (section) section.remove();
+            // If everything is gone, hide the bottom copy button
+            if (sectionsContainer.children.length === 0) {
+                bottomBtn.style.display = 'none';
+            }
+        }
 
-    function buildItemElement(text) {
-        const li = document.createElement('li');
-        li.className = 'list-item';
-        li.innerHTML = `
-            <span class="handle">☰</span>
-            <span class="text-content"></span>
-            <button class="delete-btn" aria-label="Delete item" onclick="deleteItem(this)">×</button>
-        `;
-        const textEl = li.querySelector('.text-content');
-        textEl.dataset.raw = text;
-        textEl.innerHTML = renderMarkdownLinks(text);
-        return li;
-    }
-
-    function deleteItem(btn) {
-        const li = btn.closest('.list-item');
-        if (li) li.remove();
-    }
-
-    function deleteSection(btn) {
-        // Deletes the section header AND all items in that section.
-        const section = btn.closest('.section');
-        if (section) section.remove();
-        // If everything is gone, hide the bottom copy button
-        if (sectionsContainer.children.length === 0) {
+        function clearAll() {
+            sectionsContainer.innerHTML = '';
+            itemSortables.length = 0;
+            if (sectionsSortable) { sectionsSortable.destroy(); sectionsSortable = null; }
             bottomBtn.style.display = 'none';
+            manualInput.style.display = 'none';
+            manualInput.value = '';
         }
-    }
 
-    function clearAll() {
-        sectionsContainer.innerHTML = '';
-        itemSortables.length = 0;
-        if (sectionsSortable) { sectionsSortable.destroy(); sectionsSortable = null; }
-        bottomBtn.style.display = 'none';
-        manualInput.style.display = 'none';
-        manualInput.value = '';
-    }
-
-    function exportMarkdown(event) {
-        const sectionBlocks = [];
-        document.querySelectorAll('.section').forEach(section => {
-            const lines = [];
-            const headerEl = section.querySelector('.section-header .header-text');
-            if (headerEl) lines.push(headerEl.dataset.raw || headerEl.innerText);
-            section.querySelectorAll('.list-item .text-content').forEach(item => {
-                lines.push(item.dataset.raw || item.innerText);
+        function exportMarkdown(event) {
+            const sectionBlocks = [];
+            document.querySelectorAll('.section').forEach(section => {
+                const lines = [];
+                const headerEl = section.querySelector('.section-header .header-text');
+                if (headerEl) lines.push(headerEl.dataset.raw || headerEl.innerText);
+                section.querySelectorAll('.list-item .text-content').forEach(item => {
+                    lines.push(item.dataset.raw || item.innerText);
+                });
+                if (lines.length) sectionBlocks.push(lines.join('\n'));
             });
-            if (lines.length) sectionBlocks.push(lines.join('\n'));
-        });
-        // Blank line between sections, trailing newline at end
-        const output = sectionBlocks.length ? sectionBlocks.join('\n\n') + '\n' : '';
+            // Blank line between sections, trailing newline at end
+            const output = sectionBlocks.length ? sectionBlocks.join('\n\n') + '\n' : '';
 
-        navigator.clipboard.writeText(output).then(() => {
-            const target = event.currentTarget;
-            const originalText = (target.id === 'bottom-copy-btn') ? 'Copy Markdown' : 'Copy';
-            target.innerText = 'Copied!';
-            setTimeout(() => { target.innerText = originalText; }, 1500);
-        });
-    }
-</script>
-```
-
+            navigator.clipboard.writeText(output).then(() => {
+                const target = event.currentTarget;
+                const originalText = (target.id === 'bottom-copy-btn') ? 'Copy Markdown' : 'Copy';
+                target.innerText = 'Copied!';
+                setTimeout(() => { target.innerText = originalText; }, 1500);
+            });
+        }
+    </script>
 </body>
 </html>
